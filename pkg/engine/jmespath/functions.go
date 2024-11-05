@@ -2,8 +2,10 @@ package jmespath
 
 import (
 	"bytes"
+	"crypto/md5" // #nosec G501
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1" // #nosec G505
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/asn1"
@@ -1282,6 +1284,36 @@ func jpSha256(arguments []interface{}) (interface{}, error) {
 		return nil, err
 	}
 	hasher := sha256.New()
+	_, err = hasher.Write([]byte(str.String()))
+	if err != nil {
+		return "", err
+	}
+	hashedBytes := hasher.Sum(nil)
+	return hex.EncodeToString(hashedBytes), nil
+}
+
+func jpSha1(arguments []interface{}) (interface{}, error) {
+	var err error
+	str, err := validateArg("", arguments, 0, reflect.String)
+	if err != nil {
+		return nil, err
+	}
+	hasher := sha1.New() // #nosec G401
+	_, err = hasher.Write([]byte(str.String()))
+	if err != nil {
+		return "", err
+	}
+	hashedBytes := hasher.Sum(nil)
+	return hex.EncodeToString(hashedBytes), nil
+}
+
+func jpMd5(arguments []interface{}) (interface{}, error) {
+	var err error
+	str, err := validateArg("", arguments, 0, reflect.String)
+	if err != nil {
+		return nil, err
+	}
+	hasher := md5.New() // #nosec G401
 	_, err = hasher.Write([]byte(str.String()))
 	if err != nil {
 		return "", err
